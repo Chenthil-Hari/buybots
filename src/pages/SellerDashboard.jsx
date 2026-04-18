@@ -7,8 +7,10 @@ import WelcomeModal from '../components/WelcomeModal';
 import OnboardingTour from '../components/OnboardingTour';
 
 export default function SellerDashboard() {
-    const { user } = useAuth();
+    const { user, isLoaded } = useAuth();
     const { getOpenProjects, getSellerProjects, acceptProject, submitProject, placeBid } = useProjects();
+
+    if (!isLoaded || !user) return null;
     const [activeTab, setActiveTab] = useState('open');
     const [submitModalProject, setSubmitModalProject] = useState(null);
     const [bidModalProject, setBidModalProject] = useState(null);

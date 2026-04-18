@@ -37,11 +37,14 @@ const CATEGORY_FIELDS = {
 };
 
 export default function UserDashboard() {
-    const { user } = useAuth();
+    const { user, isLoaded } = useAuth();
     const { createProject, getUserProjects, completeProject, deleteProject, acceptBid } = useProjects();
     const [showForm, setShowForm] = useState(false);
     const [toast, setToast] = useState(null);
     const [showBidsFor, setShowBidsFor] = useState(null);
+
+    if (!isLoaded || !user) return null;
+
 
     // Form state
     const [activeFilter, setActiveFilter] = useState('all');
