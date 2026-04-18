@@ -6,7 +6,16 @@ import { motion } from 'framer-motion';
 export default function SetupProfile() {
     const { user, updateMetadata, syncUserWithDatabase, isLoaded, isSignedIn } = useAuth();
     const navigate = useNavigate();
-    const [role, setRole] = useState('user');
+    
+    // Initialize role from localStorage if set during registration
+    const [role, setRole] = useState(() => {
+        const saved = localStorage.getItem('intended_role');
+        if (saved) {
+            localStorage.removeItem('intended_role');
+            return saved;
+        }
+        return 'user';
+    });
     const [canAssemble, setCanAssemble] = useState(false);
     const [hasPartsInStock, setHasPartsInStock] = useState(false);
     const [loading, setLoading] = useState(false);

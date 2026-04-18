@@ -2,8 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { SignIn } from '@clerk/clerk-react';
 import { motion } from 'framer-motion';
 
-export default function LoginPage() {
+export default function LoginPage({ role = 'user' }) {
     const navigate = useNavigate();
+    const isSeller = role === 'seller';
 
     return (
         <div className="auth-page" style={{ 
@@ -11,7 +12,9 @@ export default function LoginPage() {
             justifyContent: 'center', 
             alignItems: 'center', 
             minHeight: '100vh',
-            background: 'radial-gradient(circle at center, #111827 0%, #030712 100%)'
+            background: isSeller 
+                ? 'radial-gradient(circle at center, #064e3b 0%, #022c22 100%)' // Dark emerald for sellers
+                : 'radial-gradient(circle at center, #111827 0%, #030712 100%)'
         }}>
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -19,15 +22,21 @@ export default function LoginPage() {
                 transition={{ duration: 0.5 }}
             >
                 <div className="auth-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <div className="brand-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚡</div>
-                    <h1 style={{ color: '#fcd34d' }}>Welcome Back</h1>
-                    <p style={{ color: '#9ca3af' }}>Sign in to your Buy-Bots account</p>
+                    <div className="brand-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>
+                        {isSeller ? '🏪' : '👤'}
+                    </div>
+                    <h1 style={{ color: isSeller ? '#34d399' : '#fcd34d' }}>
+                        {isSeller ? 'Seller Login' : 'Buyer Login'}
+                    </h1>
+                    <p style={{ color: '#9ca3af' }}>
+                        Access your {isSeller ? 'store' : 'projects'} on Buy-Bots
+                    </p>
                 </div>
 
                 <SignIn 
                     routing="path" 
-                    path="/login" 
-                    signUpUrl="/register"
+                    path={isSeller ? "/login/seller" : "/login/buyer"} 
+                    signUpUrl={isSeller ? "/register/seller" : "/register/buyer"}
                     fallbackRedirectUrl="/dashboard"
                 />
 

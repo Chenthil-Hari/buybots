@@ -46,12 +46,20 @@ export default function App() {
             <Routes>
                 <Route path="/" element={<LandingPage />} />
 
-                <Route path="/login/*" element={
-                    <GuestRoute><LoginPage /></GuestRoute>
+                <Route path="/login" element={<Navigate to="/login/buyer" />} />
+                <Route path="/login/buyer" element={
+                    <GuestRoute><LoginPage role="user" /></GuestRoute>
+                } />
+                <Route path="/login/seller" element={
+                    <GuestRoute><LoginPage role="seller" /></GuestRoute>
                 } />
 
-                <Route path="/register/*" element={
-                    <GuestRoute><RegisterPage /></GuestRoute>
+                <Route path="/register" element={<Navigate to="/register/buyer" />} />
+                <Route path="/register/buyer" element={
+                    <GuestRoute><RegisterPage role="user" /></GuestRoute>
+                } />
+                <Route path="/register/seller" element={
+                    <GuestRoute><RegisterPage role="seller" /></GuestRoute>
                 } />
 
                 <Route path="/setup-profile" element={

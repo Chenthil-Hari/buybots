@@ -31,10 +31,10 @@ export default function LandingPage() {
                                 </Link>
                             ) : (
                                 <>
-                                    <Link to="/register" className="btn btn-primary btn-lg">
+                                    <Link to="/register/buyer" className="btn btn-primary btn-lg">
                                         Start Posting Projects
                                     </Link>
-                                    <Link to="/register" className="btn btn-secondary btn-lg">
+                                    <Link to="/register/seller" className="btn btn-secondary btn-lg">
                                         Become a Seller
                                     </Link>
                                 </>
