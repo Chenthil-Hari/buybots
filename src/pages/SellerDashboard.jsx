@@ -56,17 +56,10 @@ export default function SellerDashboard() {
 
     const capabilities = user.capabilities || {};
 
-    // Filter open projects based on seller capabilities
+    // Filter open projects
     const openProjects = getOpenProjects().filter(p => {
         const matchesSearch = (p.title + ' ' + p.description).toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = filterCategory ? p.category === filterCategory : true;
-
-        // Capability-based filtering for robot projects
-        if (p.category === 'Physical Robot' && p.fulfillmentType) {
-            if (p.fulfillmentType === 'source-and-assemble' && !capabilities.canAssemble) return false;
-            if (p.fulfillmentType === 'seller-direct' && (!capabilities.canAssemble || !capabilities.hasPartsInStock)) return false;
-            // parts-only: visible to all sellers (no assembly needed)
-        }
 
         return matchesSearch && matchesCategory;
     });
@@ -147,14 +140,12 @@ export default function SellerDashboard() {
                             </select>
                         </div>
 
-                        {/* Capability notice */}
+                        {/* Capability Tip */}
                         {(!capabilities.canAssemble || !capabilities.hasPartsInStock) && (
-                            <div className="capability-notice">
-                                <span>ℹ️</span>
+                            <div className="capability-notice" style={{ background: 'rgba(59, 130, 246, 0.05)', borderColor: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>
+                                <span>💡</span>
                                 <span>
-                                    Some robot projects are hidden because they require capabilities you haven't registered.
-                                    {!capabilities.canAssemble && ' You haven\'t enabled "Can Assemble".'}
-                                    {!capabilities.hasPartsInStock && ' You haven\'t enabled "Parts In Stock".'}
+                                    <strong>Pro-Tip:</strong> Enable "Can Assemble" or "Parts in Stock" in your profile to unlock high-budget robot assembly projects!
                                 </span>
                             </div>
                         )}
