@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
+import projectRoutes from './routes/projectRoutes.js';
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use(async (req, res, next) => {
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/projects', projectRoutes);
 
 // Basic Route
 app.get('/api/status', (req, res) => {

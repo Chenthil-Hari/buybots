@@ -24,13 +24,64 @@ export const DELIVERY_ESTIMATES = {
 };
 
 export function ProjectProvider({ children }) {
-    const [projects, setProjects] = useState(getStoredProjects);
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
 
+    const fetchOpenProjects = useCallback(async () => {
+        try {
+            const response = await fetch('/api/projects/open');
+            if (response.ok) {
+                const data = await response.json();
+                setProjects(prev => {
+                    const other = prev.filter(p => p.status !== 'open');
+                    return [...data, ...other];
+                });
+            }
+        } catch (err) {
+            console.error("Failed to fetch open projects:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchUserProjects = useCallback(async (userId) => {
+        try {
+            const response = await fetch(`/api/projects/user/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setProjects(prev => {
+                    const otherIds = new Set(data.map(p => p._id));
+                    const other = prev.filter(p => !otherIds.has(p._id));
+                    return [...data, ...other];
+                });
+            }
+        } catch (err) {
+            console.error("Failed to fetch user projects:", err);
+        }
+    }, []);
+
+    const fetchSellerProjects = useCallback(async (sellerId) => {
+        try {
+            const response = await fetch(`/api/projects/seller/${sellerId}`);
+            if (response.ok) {
+                const data = await response.json();
+                setProjects(prev => {
+                    const otherIds = new Set(data.map(p => p._id));
+                    const other = prev.filter(p => !otherIds.has(p._id));
+                    return [...data, ...other];
+                });
+            }
+        } catch (err) {
+            console.error("Failed to fetch seller projects:", err);
+        }
+    }, []);
+
+    // Initial load logic
     useEffect(() => {
-        saveProjects(projects);
-    }, [projects]);
+        fetchOpenProjects();
+    }, [fetchOpenProjects]);
 
-    const createProject = useCallback(({
+    const createProject = useCallback(async ({
         title, description, budget, deadline, userId, userName,
         category, fulfillmentType, partsList, shippingAddress, categoryFields
     }) => {
@@ -38,159 +89,210 @@ export function ProjectProvider({ children }) {
         const platformFee = parsedBudget * 0.10;
         const totalCost = parsedBudget + platformFee;
 
-        const project = {
-            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        const projectData = {
             title,
             description,
             budget: parsedBudget,
             platformFee,
             totalCost,
             deadline,
-            status: 'open',
             userId,
             userName,
             category: category || 'Other',
             fulfillmentType: fulfillmentType || null,
-            // Parts list / BOM for Physical Robot
             partsList: partsList || [],
-            // Shipping address for physical deliveries
             shippingAddress: shippingAddress || null,
-            // Category-specific fields
             categoryFields: categoryFields || null,
-            // Estimated delivery
             estimatedDelivery: fulfillmentType ? DELIVERY_ESTIMATES[fulfillmentType] || null : null,
-            // Seller bids (for bidding system)
-            bids: [],
-            // Seller info
-            sellerId: null,
-            sellerName: null,
-            deliverable: null,
-            createdAt: new Date().toISOString(),
-            acceptedAt: null,
-            deliveredAt: null,
-            completedAt: null,
-            rating: null,
-            reviewText: null,
-            isPinned: false, // Default not pinned
         };
-        setProjects(prev => [project, ...prev]);
-        return project;
+
+        try {
+            const response = await fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(projectData),
+            });
+            if (response.ok) {
+                const savedProject = await response.json();
+                setProjects(prev => [savedProject, ...prev]);
+                return savedProject;
+            }
+        } catch (err) {
+            console.error("Failed to create project:", err);
+        }
     }, []);
 
-    const togglePin = useCallback((projectId) => {
-        setProjects(prev =>
-            prev.map(p =>
-                p.id === projectId ? { ...p, isPinned: !p.isPinned } : p
-            )
-        );
-    }, []);
+    const togglePin = useCallback(async (projectId) => {
+        const project = projects.find(p => p._id === projectId || p.id === projectId);
+        if (!project) return;
+        
+        try {
+            const response = await fetch(`/api/projects/${project._id || project.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isPinned: !project.isPinned }),
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setProjects(prev => prev.map(p => (p._id === updated._id || p.id === updated.id) ? updated : p));
+            }
+        } catch (err) {
+            console.error("Failed to toggle pin:", err);
+        }
+    }, [projects]);
 
-    const acceptProject = useCallback((projectId, sellerId, sellerName) => {
-        setProjects(prev =>
-            prev.map(p =>
-                p.id === projectId
-                    ? {
-                        ...p,
-                        status: 'in-progress',
-                        sellerId,
-                        sellerName,
-                        acceptedAt: new Date().toISOString(),
-                    }
-                    : p
-            )
-        );
-    }, []);
+    const acceptProject = useCallback(async (projectId, sellerId, sellerName) => {
+        const project = projects.find(p => p._id === projectId || p.id === projectId);
+        if (!project) return;
 
-    const placeBid = useCallback((projectId, sellerId, sellerName, bidAmount, message, estimatedDays) => {
-        setProjects(prev =>
-            prev.map(p => {
-                if (p.id !== projectId) return p;
-                // Prevent duplicate bids from same seller
-                if (p.bids.some(b => b.sellerId === sellerId)) return p;
-                return {
-                    ...p,
-                    bids: [
-                        ...p.bids,
-                        {
-                            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
-                            sellerId,
-                            sellerName,
-                            bidAmount: parseFloat(bidAmount),
-                            message,
-                            estimatedDays: parseInt(estimatedDays) || null,
-                            createdAt: new Date().toISOString(),
-                        },
-                    ],
-                };
-            })
-        );
-    }, []);
-
-    const acceptBid = useCallback((projectId, bidId) => {
-        setProjects(prev =>
-            prev.map(p => {
-                if (p.id !== projectId) return p;
-                const bid = p.bids.find(b => b.id === bidId);
-                if (!bid) return p;
-                return {
-                    ...p,
+        try {
+            const response = await fetch(`/api/projects/${project._id || project.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     status: 'in-progress',
-                    sellerId: bid.sellerId,
-                    sellerName: bid.sellerName,
-                    budget: bid.bidAmount,
-                    platformFee: bid.bidAmount * 0.10,
-                    totalCost: bid.bidAmount * 1.10,
+                    sellerId,
+                    sellerName,
                     acceptedAt: new Date().toISOString(),
-                };
-            })
-        );
-    }, []);
+                }),
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setProjects(prev => prev.map(p => (p._id === updated._id || p.id === updated.id) ? updated : p));
+            }
+        } catch (err) {
+            console.error("Failed to accept project:", err);
+        }
+    }, [projects]);
 
-    const submitProject = useCallback((projectId, deliverable) => {
-        setProjects(prev =>
-            prev.map(p =>
-                p.id === projectId
-                    ? {
-                        ...p,
-                        status: 'delivered',
-                        deliverable,
-                        deliveredAt: new Date().toISOString(),
-                    }
-                    : p
-            )
-        );
-    }, []);
+    const placeBid = useCallback(async (projectId, sellerId, sellerName, bidAmount, message, estimatedDays) => {
+        const project = projects.find(p => p._id === projectId || p.id === projectId);
+        if (!project) return;
 
-    const completeProject = useCallback((projectId) => {
-        setProjects(prev =>
-            prev.map(p =>
-                p.id === projectId
-                    ? {
-                        ...p,
-                        status: 'completed',
-                        completedAt: new Date().toISOString(),
-                    }
-                    : p
-            )
-        );
-    }, []);
+        const bidData = {
+            sellerId,
+            sellerName,
+            bidAmount: parseFloat(bidAmount),
+            message,
+            estimatedDays: parseInt(estimatedDays) || null,
+        };
 
-    const deleteProject = useCallback((projectId) => {
-        setProjects(prev => prev.filter(p => p.id !== projectId));
-    }, []);
+        try {
+            const response = await fetch(`/api/projects/${project._id || project.id}/bid`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bidData),
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setProjects(prev => prev.map(p => (p._id === updated._id || p.id === updated.id) ? updated : p));
+            }
+        } catch (err) {
+            console.error("Failed to place bid:", err);
+        }
+    }, [projects]);
 
-    const addReview = useCallback((projectId, rating, reviewText) => {
-        setProjects(prev =>
-            prev.map(p =>
-                p.id === projectId
-                    ? { ...p, rating, reviewText }
-                    : p
-            )
-        );
-    }, []);
+    const acceptBid = useCallback(async (projectId, bidId) => {
+        const project = projects.find(p => p._id === projectId || p.id === projectId);
+        if (!project) return;
+
+        try {
+            const response = await fetch(`/api/projects/${project._id || project.id}/accept-bid`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bidId }),
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setProjects(prev => prev.map(p => (p._id === updated._id || p.id === updated.id) ? updated : p));
+            }
+        } catch (err) {
+            console.error("Failed to accept bid:", err);
+        }
+    }, [projects]);
+
+    const submitProject = useCallback(async (projectId, deliverable) => {
+        const project = projects.find(p => p._id === projectId || p.id === projectId);
+        if (!project) return;
+
+        try {
+            const response = await fetch(`/api/projects/${project._id || project.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: 'delivered',
+                    deliverable,
+                    deliveredAt: new Date().toISOString(),
+                }),
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setProjects(prev => prev.map(p => (p._id === updated._id || p.id === updated.id) ? updated : p));
+            }
+        } catch (err) {
+            console.error("Failed to submit work:", err);
+        }
+    }, [projects]);
+
+    const completeProject = useCallback(async (projectId) => {
+        const project = projects.find(p => p._id === projectId || p.id === projectId);
+        if (!project) return;
+
+        try {
+            const response = await fetch(`/api/projects/${project._id || project.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: 'completed',
+                    completedAt: new Date().toISOString(),
+                }),
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setProjects(prev => prev.map(p => (p._id === updated._id || p.id === updated.id) ? updated : p));
+            }
+        } catch (err) {
+            console.error("Failed to complete project:", err);
+        }
+    }, [projects]);
+
+    const deleteProject = useCallback(async (projectId) => {
+        const project = projects.find(p => p._id === projectId || p.id === projectId);
+        if (!project) return;
+
+        try {
+            const response = await fetch(`/api/projects/${project._id || project.id}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                setProjects(prev => prev.filter(p => (p._id !== (project._id || project.id) && p.id !== (project._id || project.id))));
+            }
+        } catch (err) {
+            console.error("Failed to delete project:", err);
+        }
+    }, [projects]);
+
+    const addReview = useCallback(async (projectId, rating, reviewText) => {
+        const project = projects.find(p => p._id === projectId || p.id === projectId);
+        if (!project) return;
+
+        try {
+            const response = await fetch(`/api/projects/${project._id || project.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rating, reviewText }),
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setProjects(prev => prev.map(p => (p._id === updated._id || p.id === updated.id) ? updated : p));
+            }
+        } catch (err) {
+            console.error("Failed to add review:", err);
+        }
+    }, [projects]);
 
     const getProjectById = useCallback((id) => {
-        return projects.find(p => p.id === id) || null;
+        return projects.find(p => p._id === id || p.id === id) || null;
     }, [projects]);
 
     const getUserProjects = useCallback((userId) => {
@@ -209,6 +311,10 @@ export function ProjectProvider({ children }) {
         <ProjectContext.Provider
             value={{
                 projects,
+                loading,
+                fetchUserProjects,
+                fetchSellerProjects,
+                fetchOpenProjects,
                 createProject,
                 acceptProject,
                 togglePin,

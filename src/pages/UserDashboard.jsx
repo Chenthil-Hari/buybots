@@ -37,12 +37,19 @@ const CATEGORY_FIELDS = {
 
 export default function UserDashboard() {
     const { user, isLoaded } = useAuth();
-    const { createProject, getUserProjects, completeProject, deleteProject, acceptBid } = useProjects();
+    const { createProject, getUserProjects, completeProject, deleteProject, acceptBid, fetchUserProjects } = useProjects();
 
     // All state MUST be declared before any conditional return (React Rules of Hooks)
     const [showForm, setShowForm] = useState(false);
     const [toast, setToast] = useState(null);
-    const [showBidsFor, setShowBidsFor] = useState(null);
+    const [showBidsFor, setShowBidsFor] = useState(null); 
+
+    // Sync user projects
+    useEffect(() => { 
+        if (user?.id) { 
+            fetchUserProjects(user.id); 
+        } 
+    }, [user?.id, fetchUserProjects]);
     const [showWelcome, setShowWelcome] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');

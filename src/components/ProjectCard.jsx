@@ -9,7 +9,7 @@ export default function ProjectCard({ project, actions }) {
     return (
         <div className="project-card">
             <div className="project-card-header">
-                <Link to={`/project/${project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Link to={`/project/${project._id || project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                     <h3 className="project-card-title">{project.title}</h3>
                 </Link>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>

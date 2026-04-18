@@ -7,7 +7,7 @@ import WelcomeModal from '../components/WelcomeModal';
 
 export default function SellerDashboard() {
     const { user, isLoaded } = useAuth();
-    const { getOpenProjects, getSellerProjects, acceptProject, submitProject, placeBid } = useProjects();
+    const { getOpenProjects, getSellerProjects, acceptProject, submitProject, placeBid, fetchSellerProjects, fetchOpenProjects } = useProjects();
 
     // All hooks MUST be before any conditional return (React Rules of Hooks)
     const [activeTab, setActiveTab] = useState('open');
@@ -19,6 +19,14 @@ export default function SellerDashboard() {
     const [bidAmount, setBidAmount] = useState('');
     const [bidMessage, setBidMessage] = useState('');
     const [bidDays, setBidDays] = useState('');
+
+    // Sync projects
+    useEffect(() => {
+        fetchOpenProjects();
+        if (user?.id) {
+            fetchSellerProjects(user.id);
+        }
+    }, [user?.id, fetchOpenProjects, fetchSellerProjects]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('');
 
