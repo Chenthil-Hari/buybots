@@ -71,9 +71,18 @@ export function ProjectProvider({ children }) {
             completedAt: null,
             rating: null,
             reviewText: null,
+            isPinned: false, // Default not pinned
         };
         setProjects(prev => [project, ...prev]);
         return project;
+    }, []);
+
+    const togglePin = useCallback((projectId) => {
+        setProjects(prev =>
+            prev.map(p =>
+                p.id === projectId ? { ...p, isPinned: !p.isPinned } : p
+            )
+        );
     }, []);
 
     const acceptProject = useCallback((projectId, sellerId, sellerName) => {
@@ -202,6 +211,7 @@ export function ProjectProvider({ children }) {
                 projects,
                 createProject,
                 acceptProject,
+                togglePin,
                 placeBid,
                 acceptBid,
                 submitProject,

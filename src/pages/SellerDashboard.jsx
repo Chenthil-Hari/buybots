@@ -136,37 +136,46 @@ export default function SellerDashboard() {
                                 </div>
                             ) : (
                                 <div className="project-list">
-                                    {openProjects.map(project => (
-                                        <ProjectCard
-                                        key={project.id}
-                                        project={project}
-                                        actions={
-                                            shouldBid(project) ? (
-                                                hasBid(project) ? (
-                                                    <span className="badge badge-completed" style={{ fontSize: 'var(--fs-xs)' }}>
-                                                        ✓ Bid Placed
-                                                    </span>
-                                                ) : (
-                                                    <button
-                                                        className="btn btn-primary btn-sm"
-                                                        onClick={() => setBidModalProject(project)}
-                                                    >
-                                                        💰 Place Bid
-                                                    </button>
-                                                )
-                                            ) : (
-                                                <button
-                                                    className="btn btn-primary btn-sm"
-                                                    onClick={() => handleAccept(project.id)}
-                                                >
-                                                    ✋ Accept Project
-                                                </button>
-                                            )
-                                        }
-                                    />
-                                ))}
-                            </div>
-                        )}
+                                    {[...openProjects]
+                                        .sort((a, b) => {
+                                            if (a.isPinned && !b.isPinned) return -1;
+                                            if (!a.isPinned && b.isPinned) return 1;
+                                            return new Date(b.createdAt) - new Date(a.createdAt);
+                                        })
+                                        .map(project => (
+                                            <ProjectCard
+                                                key={project.id}
+                                                project={project}
+                                                badge={project.isPinned ? { text: '📌 FEATURED', color: '#fcd34d' } : null}
+                                                actions={
+                                                    shouldBid(project) ? (
+                                                        hasBid(project) ? (
+                                                            <span className="badge badge-completed" style={{ fontSize: 'var(--fs-xs)' }}>
+                                                                ✓ Bid Placed
+                                                            </span>
+                                                        ) : (
+                                                            <button
+                                                                className="btn btn-primary btn-sm"
+                                                                onClick={() => setBidModalProject(project)}
+                                                                style={{ background: project.isPinned ? '#fcd34d' : '', color: project.isPinned ? '#000' : '' }}
+                                                            >
+                                                                {project.isPinned ? '📌 Place Priority Bid' : '💰 Place Bid'}
+                                                            </button>
+                                                        )
+                                                    ) : (
+                                                        <button
+                                                            className="btn btn-primary btn-sm"
+                                                            onClick={() => handleAccept(project.id)}
+                                                            style={{ background: project.isPinned ? '#fcd34d' : '', color: project.isPinned ? '#000' : '' }}
+                                                        >
+                                                            {project.isPinned ? '📌 Accept Featured' : '✋ Accept Project'}
+                                                        </button>
+                                                    )
+                                                }
+                                            />
+                                        ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 );

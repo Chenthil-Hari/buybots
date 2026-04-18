@@ -9,7 +9,8 @@ import SellerDashboard from './pages/SellerDashboard';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
-import { useState } from 'react';
+import MaintenancePage from './pages/MaintenancePage';
+import { useState, useEffect } from 'react';
 
 function AdminGuard() {
     const [isAuthenticated, setIsAuthenticated] = useState(!!sessionStorage.getItem('admin_auth'));
@@ -19,6 +20,41 @@ function AdminGuard() {
     }
 
     return <AdminDashboard onLogout={() => setIsAuthenticated(false)} />;
+}
+
+function MaintenanceWrapper({ children }) {
+    const [isMaintenance, setIsMaintenance] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const location = useLocation();
+
+    useEffect(() => {
+        const checkMaintenance = async () => {
+            try {
+                const res = await fetch('/api/settings/maintenanceMode');
+                if (res.ok) {
+                    const data = await res.json();
+                    setIsMaintenance(data.value);
+                }
+            } catch (err) {
+                console.error("Maintenance check failed", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        // Don't check maintenance for admin routes
+        if (location.pathname.startsWith('/admin')) {
+            setLoading(false);
+            return;
+        }
+        checkMaintenance();
+    }, [location.pathname]);
+
+    if (loading) return null;
+    if (isMaintenance && !location.pathname.startsWith('/admin')) {
+        return <MaintenancePage />;
+    }
+
+    return children;
 }
 
 function ProtectedRoute({ children, role }) {
@@ -58,7 +94,8 @@ function GuestRoute({ children }) {
 export default function App() {
     return (
         <BrowserRouter>
-            <Routes>
+            <MaintenanceWrapper>
+                <Routes>
                 <Route path="/" element={<LandingPage />} />
 
                 <Route path="/login" element={<Navigate to="/login/buyer" />} />
@@ -99,6 +136,7 @@ export default function App() {
 
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
+            </MaintenanceWrapper>
         </BrowserRouter>
     );
 }
