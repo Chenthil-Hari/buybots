@@ -23,7 +23,10 @@ function AdminGuard() {
 }
 
 function MaintenanceWrapper({ children }) {
-    const [isMaintenance, setIsMaintenance] = useState(false);
+    // Optimistic initialization from cache
+    const [isMaintenance, setIsMaintenance] = useState(() => {
+        return localStorage.getItem('maintenance_mode') === 'true';
+    });
     const [loading, setLoading] = useState(true);
     const [hasChecked, setHasChecked] = useState(false);
     const location = useLocation();
@@ -35,6 +38,8 @@ function MaintenanceWrapper({ children }) {
                 if (res.ok) {
                     const data = await res.json();
                     setIsMaintenance(data.value);
+                    // Update cache
+                    localStorage.setItem('maintenance_mode', data.value.toString());
                 }
             } catch (err) {
                 console.error("Maintenance check failed", err);
@@ -54,20 +59,26 @@ function MaintenanceWrapper({ children }) {
         if (!hasChecked) {
             checkMaintenance();
         }
-    }, [hasChecked]); // Remove location.pathname from dependencies
+    }, [hasChecked]);
 
-    // Also check maintenance on route changes BUT don't block rendering
+    // Background check on navigation
     useEffect(() => {
         if (hasChecked && !location.pathname.startsWith('/admin')) {
-            // Background check
             fetch('/api/settings/maintenanceMode')
                 .then(res => res.json())
-                .then(data => setIsMaintenance(data.value))
+                .then(data => {
+                    setIsMaintenance(data.value);
+                    localStorage.setItem('maintenance_mode', data.value.toString());
+                })
                 .catch(() => {});
         }
     }, [location.pathname]);
 
-    if (loading && !hasChecked) return null;
+    // Only block the VERY first visit if we have no cache
+    const isFirstEverVisit = !localStorage.getItem('maintenance_mode');
+    if (loading && isFirstEverVisit && !location.pathname.startsWith('/admin')) {
+        return <div className="loading-screen">🤖 Connecting to Universe...</div>;
+    }
 
     if (isMaintenance && !location.pathname.startsWith('/admin')) {
         return <MaintenancePage />;
