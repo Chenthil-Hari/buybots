@@ -7,6 +7,7 @@ import SetupProfile from './pages/SetupProfile';
 import UserDashboard from './pages/UserDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import ProjectDetailPage from './pages/ProjectDetailPage';
+import AdminDashboard from './pages/AdminDashboard';
 
 function ProtectedRoute({ children, role }) {
     const { user, isLoaded, isSignedIn } = useAuth();
@@ -22,7 +23,8 @@ function ProtectedRoute({ children, role }) {
     }
 
     if (role && user?.role !== role) {
-        return <Navigate to={user?.role === 'user' ? '/dashboard' : '/seller-dashboard'} />;
+        const fallbackRoute = user?.role === 'admin' ? '/admin' : (user?.role === 'user' ? '/dashboard' : '/seller-dashboard');
+        return <Navigate to={fallbackRoute} />;
     }
     
     return children;
@@ -35,7 +37,8 @@ function GuestRoute({ children }) {
     
     if (isSignedIn) {
         if (!user?.role) return <Navigate to="/setup-profile" />;
-        return <Navigate to={user.role === 'user' ? '/dashboard' : '/seller-dashboard'} />;
+        const fallbackRoute = user.role === 'admin' ? '/admin' : (user.role === 'user' ? '/dashboard' : '/seller-dashboard');
+        return <Navigate to={fallbackRoute} />;
     }
     return children;
 }
@@ -76,6 +79,10 @@ export default function App() {
 
                 <Route path="/project/:id" element={
                     <ProtectedRoute><ProjectDetailPage /></ProtectedRoute>
+                } />
+
+                <Route path="/admin" element={
+                    <ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>
                 } />
 
                 <Route path="*" element={<Navigate to="/" />} />

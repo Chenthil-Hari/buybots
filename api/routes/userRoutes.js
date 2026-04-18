@@ -41,5 +41,25 @@ router.get('/:clerkId', async (req, res) => {
         res.status(500).json({ message: 'Error fetching user', error: err.message });
     }
 });
+// Get all users
+router.get('/', async (req, res) => {
+    try {
+        const users = await User.find({}).sort({ createdAt: -1 });
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching users', error: err.message });
+    }
+});
+
+// Delete user (Admin action)
+router.delete('/:clerkId', async (req, res) => {
+    try {
+        const result = await User.deleteOne({ clerkId: req.params.clerkId });
+        if (result.deletedCount === 0) return res.status(404).json({ message: 'User not found' });
+        res.json({ message: 'User deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Error deleting user', error: err.message });
+    }
+});
 
 export default router;
