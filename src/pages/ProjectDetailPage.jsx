@@ -12,8 +12,24 @@ export default function ProjectDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { getProjectById, acceptProject, completeProject, deleteProject, addReview, acceptBid } = useProjects();
+    const { getProjectById, acceptProject, completeProject, deleteProject, addReview, acceptBid, loading } = useProjects();
     const project = getProjectById(id);
+
+    if (loading) {
+        return (
+            <>
+                <Navbar />
+                <div className="page">
+                    <div className="container">
+                        <div className="empty-state">
+                            <div className="loading-spinner" />
+                            <p>Loading project details...</p>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
     const [reviewRating, setReviewRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
 
@@ -40,27 +56,27 @@ export default function ProjectDetailPage() {
     const fulfillment = getFulfillmentInfo(project.fulfillmentType);
 
     const handleAccept = () => {
-        acceptProject(project.id, user.id, user.name);
+        acceptProject(project._id || project.id, user.id, user.name);
     };
 
     const handleComplete = () => {
-        completeProject(project.id);
+        completeProject(project._id || project.id);
     };
 
     const handleDelete = () => {
         if (window.confirm('Are you sure you want to delete this project?')) {
-            deleteProject(project.id);
+            deleteProject(project._id || project.id);
             navigate('/dashboard');
         }
     };
 
     const handleAcceptBid = (bidId) => {
-        acceptBid(project.id, bidId);
+        acceptBid(project._id || project.id, bidId);
     };
 
     const handleReviewSubmit = (e) => {
         e.preventDefault();
-        addReview(project.id, reviewRating, reviewText);
+        addReview(project._id || project.id, reviewRating, reviewText);
     };
 
     // Use fulfillment-specific timeline

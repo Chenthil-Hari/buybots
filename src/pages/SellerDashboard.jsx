@@ -167,7 +167,7 @@ export default function SellerDashboard() {
                                         })
                                         .map(project => (
                                             <ProjectCard
-                                                key={project.id}
+                                                key={project._id || project.id}
                                                 project={project}
                                                 badge={project.isPinned ? { text: '📌 FEATURED', color: '#fcd34d' } : null}
                                                 actions={
@@ -188,7 +188,7 @@ export default function SellerDashboard() {
                                                     ) : (
                                                         <button
                                                             className="btn btn-primary btn-sm"
-                                                            onClick={() => handleAccept(project.id)}
+                                                            onClick={() => handleAccept(project._id || project.id)}
                                                             style={{ background: project.isPinned ? '#fcd34d' : '', color: project.isPinned ? '#000' : '' }}
                                                         >
                                                             {project.isPinned ? '📌 Accept Featured' : '✋ Accept Project'}
@@ -214,7 +214,7 @@ export default function SellerDashboard() {
                     <div className="project-list">
                         {inProgressProjects.map(project => (
                             <ProjectCard
-                                key={project.id}
+                                key={project._id || project.id}
                                 project={project}
                                 actions={
                                     <button
@@ -239,7 +239,7 @@ export default function SellerDashboard() {
                 ) : (
                     <div className="project-list">
                         {deliveredProjects.map(project => (
-                            <ProjectCard key={project.id} project={project} />
+                            <ProjectCard key={project._id || project.id} project={project} />
                         ))}
                     </div>
                 );
@@ -254,7 +254,7 @@ export default function SellerDashboard() {
                 ) : (
                     <div className="project-list">
                         {completedProjects.map(project => (
-                            <ProjectCard key={project.id} project={project} />
+                            <ProjectCard key={project._id || project.id} project={project} />
                         ))}
                     </div>
                 );

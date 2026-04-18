@@ -433,7 +433,7 @@ export default function UserDashboard() {
 
                     {/* Bids Modal */}
                     {showBidsFor && (() => {
-                        const project = myProjects.find(p => p.id === showBidsFor);
+                        const project = myProjects.find(p => (p._id || p.id) === showBidsFor);
                         if (!project) return null;
                         return (
                             <div className="modal-overlay" onClick={() => setShowBidsFor(null)}>
@@ -498,14 +498,14 @@ export default function UserDashboard() {
                             <div className="project-list">
                                 {myProjects.map(project => (
                                     <ProjectCard
-                                        key={project.id}
+                                        key={project._id || project.id}
                                         project={project}
                                     actions={
                                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                             {project.status === 'open' && project.bids && project.bids.length > 0 && (
                                                 <button
                                                     className="btn btn-sm btn-outline"
-                                                    onClick={() => setShowBidsFor(project.id)}
+                                                    onClick={() => setShowBidsFor(project._id || project.id)}
                                                 >
                                                     💬 View Bids ({project.bids.length})
                                                 </button>
@@ -513,7 +513,7 @@ export default function UserDashboard() {
                                             {project.status === 'delivered' && (
                                                 <button
                                                     className="btn btn-success btn-sm"
-                                                    onClick={() => handleComplete(project.id)}
+                                                    onClick={() => handleComplete(project._id || project.id)}
                                                 >
                                                     ✓ Mark as Completed
                                                 </button>
@@ -522,7 +522,7 @@ export default function UserDashboard() {
                                                 <button
                                                     className="btn btn-sm"
                                                     style={{ background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca' }}
-                                                    onClick={() => handleDelete(project.id)}
+                                                    onClick={() => handleDelete(project._id || project.id)}
                                                 >
                                                     🗑️ Delete
                                                 </button>
