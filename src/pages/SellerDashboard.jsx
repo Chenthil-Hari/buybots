@@ -4,7 +4,6 @@ import { useProjects } from '../context/ProjectContext';
 import Navbar from '../components/Navbar';
 import ProjectCard from '../components/ProjectCard';
 import WelcomeModal from '../components/WelcomeModal';
-import OnboardingTour from '../components/OnboardingTour';
 
 export default function SellerDashboard() {
     const { user, isLoaded } = useAuth();
@@ -274,39 +273,14 @@ export default function SellerDashboard() {
         }
     };
 
-    const sellerTourSteps = [
-        {
-            target: '.dashboard-header',
-            content: 'Welcome to the Seller Dashboard! Here you can find work and manage your active jobs.',
-            disableBeacon: true,
-        },
-        {
-            target: '.tour-seller-stats',
-            content: 'Track the number of projects available to you, and those you are currently working on.',
-        },
-        {
-            target: '.tour-seller-tabs',
-            content: 'Switch between Open projects to bid on, and projects you are currently delivering.',
-        },
-        {
-            target: '.tour-seller-filters',
-            content: 'Use these filters to find projects that perfectly match your skill set.',
-        },
-        {
-            target: '.tour-seller-projects',
-            content: 'Browse open projects here. Click "Place Bid" or "Accept Project" to get started!',
-        }
-    ];
-
     return (
         <div className="seller-theme">
             <Navbar />
-            <OnboardingTour steps={sellerTourSteps} tourKey="seller_v1" run={startTourManual} />
             <WelcomeModal 
                 isOpen={showWelcome} 
                 onClose={() => setShowWelcome(false)} 
                 userName={user?.name} 
-                onStartTour={handleStartTour} 
+                onStartTour={() => setShowWelcome(false)} 
             />
             
             {toast && (

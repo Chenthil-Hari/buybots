@@ -5,7 +5,6 @@ import Navbar from '../components/Navbar';
 import WelcomeModal from '../components/WelcomeModal';
 import ProjectCard from '../components/ProjectCard';
 import FulfillmentSelector from '../components/FulfillmentSelector';
-import OnboardingTour from '../components/OnboardingTour';
 
 // Category-specific field configs
 const CATEGORY_FIELDS = {
@@ -177,36 +176,16 @@ export default function UserDashboard() {
 
     const catConfig = CATEGORY_FIELDS[category];
 
-    const buyerTourSteps = [
-        {
-            target: '.tour-buyer-welcome',
-            content: 'Welcome to your Buyer Dashboard! Here is where you manage all your project requests.',
-            disableBeacon: true,
-        },
-        {
-            target: '.tour-buyer-stats',
-            content: 'Keep an eye on your project counts across different stages—from Open to Completed.',
-        },
-        {
-            target: '.tour-buyer-post',
-            content: 'Click here to post your first project. Be as detailed as possible to get the best bids!',
-        },
-        {
-            target: '.tour-buyer-projects',
-            content: 'Your active projects will appear here. You can review incoming bids and accept the best one.',
-        }
-    ];
-
     return (
         <>
             <Navbar />
-            <OnboardingTour steps={buyerTourSteps} tourKey="buyer_v1" run={startTourManual} />
             <WelcomeModal 
                 isOpen={showWelcome} 
                 onClose={() => setShowWelcome(false)} 
                 userName={user?.name} 
-                onStartTour={handleStartTour} 
+                onStartTour={() => setShowWelcome(false)} 
             />
+
             {/* Toast */}
             {toast && (
                 <div className={`toast toast-${toast.type}`}>
