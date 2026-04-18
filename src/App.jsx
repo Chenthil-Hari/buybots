@@ -1,24 +1,40 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import SetupProfile from './pages/SetupProfile';
 import UserDashboard from './pages/UserDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 
 function ProtectedRoute({ children, role }) {
-    const { user } = useAuth();
-    if (!user) return <Navigate to="/login" />;
-    if (role && user.role !== role) {
-        return <Navigate to={user.role === 'user' ? '/dashboard' : '/seller-dashboard'} />;
+    const { user, isLoaded, isSignedIn } = useAuth();
+    const location = useLocation();
+
+    if (!isLoaded) return <div className="loading-screen">Loading...</div>;
+    
+    if (!isSignedIn) return <Navigate to="/login" state={{ from: location }} />;
+    
+    // Redirect to setup if no role is defined (except when already on setup page)
+    if (isSignedIn && !user?.role && location.pathname !== '/setup-profile') {
+        return <Navigate to="/setup-profile" />;
     }
+
+    if (role && user?.role !== role) {
+        return <Navigate to={user?.role === 'user' ? '/dashboard' : '/seller-dashboard'} />;
+    }
+    
     return children;
 }
 
 function GuestRoute({ children }) {
-    const { user } = useAuth();
-    if (user) {
+    const { user, isLoaded, isSignedIn } = useAuth();
+    
+    if (!isLoaded) return <div className="loading-screen">Loading...</div>;
+    
+    if (isSignedIn) {
+        if (!user?.role) return <Navigate to="/setup-profile" />;
         return <Navigate to={user.role === 'user' ? '/dashboard' : '/seller-dashboard'} />;
     }
     return children;
@@ -30,12 +46,16 @@ export default function App() {
             <Routes>
                 <Route path="/" element={<LandingPage />} />
 
-                <Route path="/login" element={
+                <Route path="/login/*" element={
                     <GuestRoute><LoginPage /></GuestRoute>
                 } />
 
-                <Route path="/register" element={
+                <Route path="/register/*" element={
                     <GuestRoute><RegisterPage /></GuestRoute>
+                } />
+
+                <Route path="/setup-profile" element={
+                    <ProtectedRoute><SetupProfile /></ProtectedRoute>
                 } />
 
                 <Route path="/dashboard" element={

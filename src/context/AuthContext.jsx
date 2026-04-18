@@ -1,81 +1,91 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 
 const AuthContext = createContext(null);
 
-const USERS_KEY = 'buybots_users';
-const CURRENT_USER_KEY = 'buybots_current_user';
-
-function getStoredUsers() {
-  try {
-    return JSON.parse(localStorage.getItem(USERS_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-
-function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(CURRENT_USER_KEY));
-    } catch {
-      return null;
-    }
-  });
+  const { user: clerkUser, isLoaded, isSignedIn } = useUser();
+  const { signOut, openUserProfile } = useClerk();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(CURRENT_USER_KEY);
+    if (isLoaded && isSignedIn && clerkUser) {
+      // Map Clerk metadata to app user structure
+      const metadata = clerkUser.unsafeMetadata || {};
+      setUser({
+        id: clerkUser.id,
+        name: clerkUser.fullName || clerkUser.firstName || 'User',
+        email: clerkUser.primaryEmailAddress?.emailAddress,
+        role: metadata.role || 'user', // Default to 'user'
+        capabilities: metadata.capabilities || null,
+        clerkUser: clerkUser, // Reference to original clerk user
+      });
+    } else if (isLoaded && !isSignedIn) {
+      setUser(null);
     }
-  }, [user]);
+  }, [clerkUser, isLoaded, isSignedIn]);
 
-  const register = (name, email, password, role, capabilities = {}) => {
-    const users = getStoredUsers();
-    if (users.find(u => u.email === email)) {
-      throw new Error('An account with this email already exists.');
+  const updateMetadata = async (metadata) => {
+    if (!clerkUser) return;
+    try {
+      await clerkUser.update({
+        unsafeMetadata: {
+          ...clerkUser.unsafeMetadata,
+          ...metadata,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to update metadata:", err);
+      throw err;
     }
-    const newUser = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      name,
-      email,
-      password,
-      role, // 'user' or 'seller'
-      // Seller capabilities
-      capabilities: role === 'seller' ? {
-        canAssemble: capabilities.canAssemble || false,
-        hasPartsInStock: capabilities.hasPartsInStock || false,
-      } : null,
-      createdAt: new Date().toISOString(),
-    };
-    users.push(newUser);
-    saveUsers(users);
-    const { password: _, ...safeUser } = newUser;
-    setUser(safeUser);
-    return safeUser;
   };
 
-  const login = (email, password) => {
-    const users = getStoredUsers();
-    const found = users.find(u => u.email === email && u.password === password);
-    if (!found) {
-      throw new Error('Invalid email or password.');
+  const syncUserWithDatabase = async (userData) => {
+    try {
+      const response = await fetch('/api/users/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clerkId: clerkUser.id,
+          email: clerkUser.primaryEmailAddress?.emailAddress,
+          name: clerkUser.fullName || clerkUser.firstName,
+          ...userData
+        }),
+      });
+      return await response.json();
+    } catch (err) {
+      console.error("Failed to sync user with database:", err);
     }
-    const { password: _, ...safeUser } = found;
-    setUser(safeUser);
-    return safeUser;
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    await signOut();
+  };
+
+  // Note: login and register are now handled by Clerk components
+  // but we keep the context shape for compatibility where possible
+  const login = () => {
+    console.warn("Manual login called. Use Clerk SignIn instead.");
+  };
+
+  const register = () => {
+    console.warn("Manual register called. Use Clerk SignUp instead.");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoaded, 
+      isSignedIn, 
+      login, 
+      register, 
+      logout,
+      updateMetadata,
+      syncUserWithDatabase,
+      openUserProfile 
+    }}>
       {children}
     </AuthContext.Provider>
   );
