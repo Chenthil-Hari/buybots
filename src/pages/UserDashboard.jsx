@@ -38,22 +38,27 @@ const CATEGORY_FIELDS = {
 export default function UserDashboard() {
     const { user, isLoaded } = useAuth();
     const { createProject, getUserProjects, completeProject, deleteProject, acceptBid } = useProjects();
+
+    // All state MUST be declared before any conditional return (React Rules of Hooks)
     const [showForm, setShowForm] = useState(false);
     const [toast, setToast] = useState(null);
     const [showBidsFor, setShowBidsFor] = useState(null);
-
-    if (!isLoaded || !user) return null;
-
-
-    // Form state
-    const [activeFilter, setActiveFilter] = useState('all');
     const [showWelcome, setShowWelcome] = useState(false);
-    const [startTourManual, setStartTourManual] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [budget, setBudget] = useState('');
+    const [category, setCategory] = useState('');
+    const [fulfillmentType, setFulfillmentType] = useState('');
+    const [deadline, setDeadline] = useState('');
+    const [partsList, setPartsList] = useState([{ name: '', qty: 1 }]);
+    const [shippingAddress, setShippingAddress] = useState('');
+    const [categoryFieldValues, setCategoryFieldValues] = useState({});
 
     useEffect(() => {
+        if (!user) return;
         const checkFirstVisit = async () => {
             const hasSeenWelcome = localStorage.getItem('has_seen_welcome');
-            if (!hasSeenWelcome && user) {
+            if (!hasSeenWelcome) {
                 setShowWelcome(true);
                 localStorage.setItem('has_seen_welcome', 'true');
                 
@@ -72,22 +77,8 @@ export default function UserDashboard() {
         checkFirstVisit();
     }, [user]);
 
-    const handleStartTour = () => {
-        setShowWelcome(false);
-        setStartTourManual(true);
-    };
-
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [budget, setBudget] = useState('');
-    const [category, setCategory] = useState('');
-    const [fulfillmentType, setFulfillmentType] = useState('');
-    const [deadline, setDeadline] = useState('');
-    // Physical robot extras
-    const [partsList, setPartsList] = useState([{ name: '', qty: 1 }]);
-    const [shippingAddress, setShippingAddress] = useState('');
-    // Category fields
-    const [categoryFieldValues, setCategoryFieldValues] = useState({});
+    // Guard: wait for auth to load
+    if (!isLoaded || !user) return null;
 
     const myProjects = getUserProjects(user.id);
     const openCount = myProjects.filter(p => p.status === 'open').length;

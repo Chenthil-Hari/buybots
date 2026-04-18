@@ -16,9 +16,10 @@ export function AuthProvider({ children }) {
         id: clerkUser.id,
         name: clerkUser.fullName || clerkUser.firstName || 'User',
         email: clerkUser.primaryEmailAddress?.emailAddress,
-        role: metadata.role || 'user', // Default to 'user'
+        // null if not set — triggers setup-profile redirect for new users
+        role: metadata.role || null,
         capabilities: metadata.capabilities || null,
-        clerkUser: clerkUser, // Reference to original clerk user
+        clerkUser: clerkUser,
       });
     } else if (isLoaded && !isSignedIn) {
       setUser(null);

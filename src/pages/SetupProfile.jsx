@@ -23,10 +23,12 @@ export default function SetupProfile() {
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
             navigate('/login');
+            return;
         }
-        if (isLoaded && user?.role && user.role !== 'user') {
-            // If they already have a role, send them to their dashboard
-            navigate(user.role === 'seller' ? '/seller-dashboard' : '/dashboard');
+        // If user already has a role set (returning user), skip setup
+        if (isLoaded && user?.role) {
+            const route = user.role === 'seller' ? '/seller-dashboard' : '/dashboard';
+            navigate(route, { replace: true });
         }
     }, [isLoaded, isSignedIn, user, navigate]);
 
@@ -48,10 +50,8 @@ export default function SetupProfile() {
             // 2. Sync with MongoDB
             await syncUserWithDatabase(metadata);
 
-            // Force a small delay to ensure metadata is synced
-            setTimeout(() => {
-                navigate(role === 'user' ? '/dashboard' : '/seller-dashboard');
-            }, 1000);
+            // Navigate immediately — AuthContext will pick up new metadata from Clerk
+            navigate(role === 'user' ? '/dashboard' : '/seller-dashboard', { replace: true });
         } catch (err) {
             console.error(err);
             alert("Failed to save profile. Please try again.");

@@ -43,11 +43,8 @@ export default function WelcomeModal({ isOpen, onClose, userName, onStartTour })
                         </div>
 
                         <div className="welcome-actions">
-                            <button className="btn btn-primary" onClick={onStartTour}>
-                                Take a Quick Tour 🎥
-                            </button>
-                            <button className="btn btn-outline" onClick={onClose} style={{ marginLeft: '10px' }}>
-                                Skip for now
+                            <button className="btn btn-primary" onClick={onClose}>
+                                🚀 Get Started Now
                             </button>
                         </div>
                     </div>

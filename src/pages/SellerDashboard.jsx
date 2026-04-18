@@ -9,29 +9,26 @@ export default function SellerDashboard() {
     const { user, isLoaded } = useAuth();
     const { getOpenProjects, getSellerProjects, acceptProject, submitProject, placeBid } = useProjects();
 
-    if (!isLoaded || !user) return null;
+    // All hooks MUST be before any conditional return (React Rules of Hooks)
     const [activeTab, setActiveTab] = useState('open');
     const [submitModalProject, setSubmitModalProject] = useState(null);
     const [bidModalProject, setBidModalProject] = useState(null);
     const [showWelcome, setShowWelcome] = useState(false);
     const [deliverable, setDeliverable] = useState('');
     const [toast, setToast] = useState(null);
-    
-    // Bid form
     const [bidAmount, setBidAmount] = useState('');
     const [bidMessage, setBidMessage] = useState('');
     const [bidDays, setBidDays] = useState('');
-
-    const [startTourManual, setStartTourManual] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterCategory, setFilterCategory] = useState('');
 
     useEffect(() => {
+        if (!user) return;
         const checkFirstVisit = async () => {
             const hasSeenWelcome = localStorage.getItem('has_seen_welcome_seller');
-            if (!hasSeenWelcome && user) {
+            if (!hasSeenWelcome) {
                 setShowWelcome(true);
                 localStorage.setItem('has_seen_welcome_seller', 'true');
-                
-                // Trigger Welcome Email
                 try {
                     await fetch('/api/users/welcome-email', {
                         method: 'POST',
@@ -46,13 +43,8 @@ export default function SellerDashboard() {
         checkFirstVisit();
     }, [user]);
 
-    const handleStartTour = () => {
-        setShowWelcome(false);
-        setStartTourManual(true);
-    };
-
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filterCategory, setFilterCategory] = useState('');
+    // Guard: wait for auth to load
+    if (!isLoaded || !user) return null;
 
     const capabilities = user.capabilities || {};
 

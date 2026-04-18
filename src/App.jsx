@@ -88,16 +88,16 @@ function ProtectedRoute({ children, role }) {
 
     if (!isLoaded) return <div className="loading-screen">Loading...</div>;
     
+    // Not signed in — send to login
     if (!isSignedIn) return <Navigate to="/login" state={{ from: location }} />;
-    
-    // Redirect to setup if no role is defined (except when already on setup page)
-    if (isSignedIn && !user?.role && location.pathname !== '/setup-profile') {
-        return <Navigate to="/setup-profile" />;
-    }
 
-    if (role && user?.role !== role) {
-        const fallbackRoute = user?.role === 'admin' ? '/admin' : (user?.role === 'user' ? '/dashboard' : '/seller-dashboard');
-        return <Navigate to={fallbackRoute} />;
+    // Signed in but no role yet — must complete setup
+    if (!user?.role) return <Navigate to="/setup-profile" />;
+    
+    // Signed in with wrong role — redirect to their correct dashboard
+    if (role && user.role !== role) {
+        const correctRoute = user.role === 'seller' ? '/seller-dashboard' : (user.role === 'admin' ? '/admin' : '/dashboard');
+        return <Navigate to={correctRoute} />;
     }
     
     return children;
@@ -109,9 +109,11 @@ function GuestRoute({ children }) {
     if (!isLoaded) return <div className="loading-screen">Loading...</div>;
     
     if (isSignedIn) {
+        // Signed in but no role yet
         if (!user?.role) return <Navigate to="/setup-profile" />;
-        const fallbackRoute = user.role === 'admin' ? '/admin' : (user.role === 'user' ? '/dashboard' : '/seller-dashboard');
-        return <Navigate to={fallbackRoute} />;
+        // Redirect to correct dashboard
+        const route = user.role === 'seller' ? '/seller-dashboard' : (user.role === 'admin' ? '/admin' : '/dashboard');
+        return <Navigate to={route} />;
     }
     return children;
 }
