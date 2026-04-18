@@ -25,6 +25,7 @@ function AdminGuard() {
 function MaintenanceWrapper({ children }) {
     const [isMaintenance, setIsMaintenance] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [hasChecked, setHasChecked] = useState(false);
     const location = useLocation();
 
     useEffect(() => {
@@ -39,17 +40,29 @@ function MaintenanceWrapper({ children }) {
                 console.error("Maintenance check failed", err);
             } finally {
                 setLoading(false);
+                setHasChecked(true);
             }
         };
-        // Don't check maintenance for admin routes
+
+        // Skip maintenance check for admin routes
         if (location.pathname.startsWith('/admin')) {
             setLoading(false);
+            setHasChecked(true);
             return;
         }
-        checkMaintenance();
-    }, [location.pathname]);
 
-    if (loading) return null;
+        // Only block initial load
+        if (!hasChecked) {
+            checkMaintenance();
+        } else {
+            // Background check for other navigations
+            checkMaintenance();
+        }
+    }, [location.pathname, hasChecked]);
+
+    // Only return null on the very first load to prevent flickering
+    if (loading && !hasChecked) return null;
+
     if (isMaintenance && !location.pathname.startsWith('/admin')) {
         return <MaintenancePage />;
     }
@@ -99,18 +112,18 @@ export default function App() {
                 <Route path="/" element={<LandingPage />} />
 
                 <Route path="/login" element={<Navigate to="/login/buyer" />} />
-                <Route path="/login/buyer" element={
+                <Route path="/login/buyer/*" element={
                     <GuestRoute><LoginPage role="user" /></GuestRoute>
                 } />
-                <Route path="/login/seller" element={
+                <Route path="/login/seller/*" element={
                     <GuestRoute><LoginPage role="seller" /></GuestRoute>
                 } />
 
                 <Route path="/register" element={<Navigate to="/register/buyer" />} />
-                <Route path="/register/buyer" element={
+                <Route path="/register/buyer/*" element={
                     <GuestRoute><RegisterPage role="user" /></GuestRoute>
                 } />
-                <Route path="/register/seller" element={
+                <Route path="/register/seller/*" element={
                     <GuestRoute><RegisterPage role="seller" /></GuestRoute>
                 } />
 
