@@ -44,23 +44,29 @@ function MaintenanceWrapper({ children }) {
             }
         };
 
-        // Skip maintenance check for admin routes
+        // Skip check for admin routes on first load
         if (location.pathname.startsWith('/admin')) {
             setLoading(false);
             setHasChecked(true);
             return;
         }
 
-        // Only block initial load
         if (!hasChecked) {
             checkMaintenance();
-        } else {
-            // Background check for other navigations
-            checkMaintenance();
         }
-    }, [location.pathname, hasChecked]);
+    }, [hasChecked]); // Remove location.pathname from dependencies
 
-    // Only return null on the very first load to prevent flickering
+    // Also check maintenance on route changes BUT don't block rendering
+    useEffect(() => {
+        if (hasChecked && !location.pathname.startsWith('/admin')) {
+            // Background check
+            fetch('/api/settings/maintenanceMode')
+                .then(res => res.json())
+                .then(data => setIsMaintenance(data.value))
+                .catch(() => {});
+        }
+    }, [location.pathname]);
+
     if (loading && !hasChecked) return null;
 
     if (isMaintenance && !location.pathname.startsWith('/admin')) {
