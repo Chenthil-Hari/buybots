@@ -8,6 +8,18 @@ import UserDashboard from './pages/UserDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminLogin from './pages/AdminLogin';
+import { useState } from 'react';
+
+function AdminGuard() {
+    const [isAuthenticated, setIsAuthenticated] = useState(!!sessionStorage.getItem('admin_auth'));
+
+    if (!isAuthenticated) {
+        return <AdminLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
+    }
+
+    return <AdminDashboard onLogout={() => setIsAuthenticated(false)} />;
+}
 
 function ProtectedRoute({ children, role }) {
     const { user, isLoaded, isSignedIn } = useAuth();
@@ -82,7 +94,7 @@ export default function App() {
                 } />
 
                 <Route path="/admin" element={
-                    <ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>
+                    <AdminGuard />
                 } />
 
                 <Route path="*" element={<Navigate to="/" />} />

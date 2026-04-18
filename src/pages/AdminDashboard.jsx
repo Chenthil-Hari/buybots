@@ -4,12 +4,17 @@ import { useProjects } from '../context/ProjectContext';
 import Navbar from '../components/Navbar';
 import './AdminDashboard.css';
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ onLogout }) {
     const { user } = useAuth();
     const { projects, deleteProject } = useProjects();
     const [users, setUsers] = useState([]);
     const [loadingUsers, setLoadingUsers] = useState(true);
     const [activeTab, setActiveTab] = useState('analytics');
+
+    const handleLogout = () => {
+        sessionStorage.removeItem('admin_auth');
+        if (onLogout) onLogout();
+    };
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -59,9 +64,14 @@ export default function AdminDashboard() {
             <div className="page">
                 <div className="container">
                     <div className="admin-header">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <span className="admin-badge">ADMIN</span>
-                            <h1>Command Center</h1>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <span className="admin-badge">ADMIN</span>
+                                <h1>Command Center</h1>
+                            </div>
+                            <button className="btn btn-outline btn-sm" onClick={handleLogout} style={{ color: '#ef4444', borderColor: '#ef4444' }}>
+                                🔓 Terminate Session
+                            </button>
                         </div>
                         <p className="text-secondary">Welcome back, {user?.name}. You have full access to platform operations.</p>
                     </div>
