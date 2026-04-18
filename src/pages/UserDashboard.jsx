@@ -4,6 +4,7 @@ import { useProjects } from '../context/ProjectContext';
 import Navbar from '../components/Navbar';
 import ProjectCard from '../components/ProjectCard';
 import FulfillmentSelector from '../components/FulfillmentSelector';
+import OnboardingTour from '../components/OnboardingTour';
 
 // Category-specific field configs
 const CATEGORY_FIELDS = {
@@ -141,18 +142,39 @@ export default function UserDashboard() {
 
     const catConfig = CATEGORY_FIELDS[category];
 
+    const buyerTourSteps = [
+        {
+            target: '.tour-buyer-welcome',
+            content: 'Welcome to your Buyer Dashboard! Here is where you manage all your project requests.',
+            disableBeacon: true,
+        },
+        {
+            target: '.tour-buyer-stats',
+            content: 'Keep an eye on your project counts across different stages—from Open to Completed.',
+        },
+        {
+            target: '.tour-buyer-post',
+            content: 'Click here to post your first project. Be as detailed as possible to get the best bids!',
+        },
+        {
+            target: '.tour-buyer-projects',
+            content: 'Your active projects will appear here. You can review incoming bids and accept the best one.',
+        }
+    ];
+
     return (
         <>
             <Navbar />
+            <OnboardingTour steps={buyerTourSteps} tourKey="buyer_dashboard" />
             <div className="page">
                 <div className="container">
-                    <div className="dashboard-header">
+                    <div className="dashboard-header tour-buyer-welcome">
                         <h1>Welcome back, <span className="text-gradient">{user.name}</span></h1>
                         <p className="text-secondary">Manage your projects and track their progress.</p>
                     </div>
 
                     {/* Stats */}
-                    <div className="dashboard-stats">
+                    <div className="dashboard-stats tour-buyer-stats">
                         <div className="dashboard-stat-card">
                             <div className="dashboard-stat-icon" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}>
                                 📋
@@ -194,7 +216,7 @@ export default function UserDashboard() {
                     {/* Post Project Section */}
                     <div className="section-header">
                         <h2>My Projects</h2>
-                        <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+                        <button className="btn btn-primary tour-buyer-post" onClick={() => setShowForm(true)}>
                             + Post New Project
                         </button>
                     </div>
@@ -441,18 +463,19 @@ export default function UserDashboard() {
                     })()}
 
                     {/* Project List */}
-                    {myProjects.length === 0 ? (
-                        <div className="empty-state">
-                            <div className="empty-state-icon">📋</div>
-                            <h3>No projects yet</h3>
-                            <p>Post your first project and let sellers get to work!</p>
-                        </div>
-                    ) : (
-                        <div className="project-list">
-                            {myProjects.map(project => (
-                                <ProjectCard
-                                    key={project.id}
-                                    project={project}
+                    <div className="tour-buyer-projects">
+                        {myProjects.length === 0 ? (
+                            <div className="empty-state">
+                                <div className="empty-state-icon">📋</div>
+                                <h3>No projects yet</h3>
+                                <p>Post your first project and let sellers get to work!</p>
+                            </div>
+                        ) : (
+                            <div className="project-list">
+                                {myProjects.map(project => (
+                                    <ProjectCard
+                                        key={project.id}
+                                        project={project}
                                     actions={
                                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                             {project.status === 'open' && project.bids && project.bids.length > 0 && (
@@ -486,6 +509,7 @@ export default function UserDashboard() {
                             ))}
                         </div>
                     )}
+                    </div>
                 </div>
             </div>
 

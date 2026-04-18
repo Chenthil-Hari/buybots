@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
 import Navbar from '../components/Navbar';
 import ProjectCard from '../components/ProjectCard';
+import OnboardingTour from '../components/OnboardingTour';
 
 export default function SellerDashboard() {
     const { user } = useAuth();
@@ -90,7 +91,7 @@ export default function SellerDashboard() {
             case 'open':
                 return (
                     <div className="tab-pane">
-                        <div className="filters-bar" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div className="filters-bar tour-seller-filters" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                             <input
                                 type="text"
                                 className="form-input"
@@ -126,16 +127,17 @@ export default function SellerDashboard() {
                             </div>
                         )}
 
-                        {openProjects.length === 0 ? (
-                            <div className="empty-state">
-                                <div className="empty-state-icon">📭</div>
-                                <h3>No open projects found</h3>
-                                <p>Check back later or adjust your filters!</p>
-                            </div>
-                        ) : (
-                            <div className="project-list">
-                                {openProjects.map(project => (
-                                    <ProjectCard
+                        <div className="tour-seller-projects">
+                            {openProjects.length === 0 ? (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon">📭</div>
+                                    <h3>No open projects found</h3>
+                                    <p>Check back later or adjust your filters!</p>
+                                </div>
+                            ) : (
+                                <div className="project-list">
+                                    {openProjects.map(project => (
+                                        <ProjectCard
                                         key={project.id}
                                         project={project}
                                         actions={
@@ -165,6 +167,7 @@ export default function SellerDashboard() {
                                 ))}
                             </div>
                         )}
+                        </div>
                     </div>
                 );
 
@@ -229,9 +232,34 @@ export default function SellerDashboard() {
         }
     };
 
+    const sellerTourSteps = [
+        {
+            target: '.dashboard-header',
+            content: 'Welcome to the Seller Dashboard! Here you can find work and manage your active jobs.',
+            disableBeacon: true,
+        },
+        {
+            target: '.tour-seller-stats',
+            content: 'Track the number of projects available to you, and those you are currently working on.',
+        },
+        {
+            target: '.tour-seller-tabs',
+            content: 'Switch between Open projects to bid on, and projects you are currently delivering.',
+        },
+        {
+            target: '.tour-seller-filters',
+            content: 'Use these filters to find projects that perfectly match your skill set.',
+        },
+        {
+            target: '.tour-seller-projects',
+            content: 'Browse open projects here. Click "Place Bid" or "Accept Project" to get started!',
+        }
+    ];
+
     return (
         <>
             <Navbar />
+            <OnboardingTour steps={sellerTourSteps} tourKey="seller_dashboard" />
             <div className="page">
                 <div className="container">
                     <div className="dashboard-header">
@@ -255,7 +283,7 @@ export default function SellerDashboard() {
                     </div>
 
                     {/* Stats */}
-                    <div className="dashboard-stats">
+                    <div className="dashboard-stats tour-seller-stats">
                         <div className="dashboard-stat-card">
                             <div className="dashboard-stat-icon" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}>
                                 📋
@@ -295,7 +323,7 @@ export default function SellerDashboard() {
                     </div>
 
                     {/* Tabs */}
-                    <div className="tabs">
+                    <div className="tabs tour-seller-tabs">
                         <button className={`tab ${activeTab === 'open' ? 'active' : ''}`} onClick={() => setActiveTab('open')}>
                             Open Projects ({openProjects.length})
                         </button>
