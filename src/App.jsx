@@ -74,12 +74,7 @@ function MaintenanceWrapper({ children }) {
         }
     }, [location.pathname]);
 
-    // Only block the VERY first visit if we have no cache
-    const isFirstEverVisit = !localStorage.getItem('maintenance_mode');
-    if (loading && isFirstEverVisit && !location.pathname.startsWith('/admin')) {
-        return <div className="loading-screen">🤖 Connecting to Universe...</div>;
-    }
-
+    // Render children immediately (Zero Delay)
     if (isMaintenance && !location.pathname.startsWith('/admin')) {
         return <MaintenancePage />;
     }
