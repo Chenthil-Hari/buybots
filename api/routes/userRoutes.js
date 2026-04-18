@@ -1,5 +1,6 @@
 import express from 'express';
 import User from '../models/User.js';
+import { sendWelcomeEmail } from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -59,6 +60,25 @@ router.delete('/:clerkId', async (req, res) => {
         res.json({ message: 'User deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting user', error: err.message });
+    }
+});
+
+// Send Welcome Email
+router.post('/welcome-email', async (req, res) => {
+    const { email, name } = req.body;
+    if (!email || !name) {
+        return res.status(400).json({ message: 'Email and name are required' });
+    }
+
+    try {
+        const result = await sendWelcomeEmail(email, name);
+        if (result.success) {
+            res.json({ message: 'Welcome email sent successfully' });
+        } else {
+            res.status(500).json({ message: 'Failed to send email', error: result.error });
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Internal server error', error: err.message });
     }
 });
 

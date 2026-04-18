@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
 import Navbar from '../components/Navbar';
+import WelcomeModal from '../components/WelcomeModal';
 import ProjectCard from '../components/ProjectCard';
 import FulfillmentSelector from '../components/FulfillmentSelector';
 import OnboardingTour from '../components/OnboardingTour';
@@ -43,6 +44,37 @@ export default function UserDashboard() {
     const [showBidsFor, setShowBidsFor] = useState(null);
 
     // Form state
+    const [activeFilter, setActiveFilter] = useState('all');
+    const [showWelcome, setShowWelcome] = useState(false);
+    const [startTourManual, setStartTourManual] = useState(false);
+
+    useEffect(() => {
+        const checkFirstVisit = async () => {
+            const hasSeenWelcome = localStorage.getItem('has_seen_welcome');
+            if (!hasSeenWelcome && user) {
+                setShowWelcome(true);
+                localStorage.setItem('has_seen_welcome', 'true');
+                
+                // Trigger Welcome Email
+                try {
+                    await fetch('/api/users/welcome-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user.email, name: user.name })
+                    });
+                } catch (err) {
+                    console.error("Failed to send welcome email", err);
+                }
+            }
+        };
+        checkFirstVisit();
+    }, [user]);
+
+    const handleStartTour = () => {
+        setShowWelcome(false);
+        setStartTourManual(true);
+    };
+
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [budget, setBudget] = useState('');
@@ -165,7 +197,19 @@ export default function UserDashboard() {
     return (
         <>
             <Navbar />
-            <OnboardingTour steps={buyerTourSteps} tourKey="buyer_dashboard" />
+            <OnboardingTour steps={buyerTourSteps} tourKey="buyer_v1" run={startTourManual} />
+            <WelcomeModal 
+                isOpen={showWelcome} 
+                onClose={() => setShowWelcome(false)} 
+                userName={user?.name} 
+                onStartTour={handleStartTour} 
+            />
+            {/* Toast */}
+            {toast && (
+                <div className={`toast toast-${toast.type}`}>
+                    {toast.message}
+                </div>
+            )}
             <div className="page">
                 <div className="container">
                     <div className="dashboard-header tour-buyer-welcome">
@@ -513,12 +557,7 @@ export default function UserDashboard() {
                 </div>
             </div>
 
-            {/* Toast */}
-            {toast && (
-                <div className={`toast toast-${toast.type}`}>
-                    {toast.message}
-                </div>
-            )}
+            </div>
         </>
     );
 }

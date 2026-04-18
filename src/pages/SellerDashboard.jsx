@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
 import Navbar from '../components/Navbar';
 import ProjectCard from '../components/ProjectCard';
+import WelcomeModal from '../components/WelcomeModal';
 import OnboardingTour from '../components/OnboardingTour';
 
 export default function SellerDashboard() {
@@ -11,6 +12,7 @@ export default function SellerDashboard() {
     const [activeTab, setActiveTab] = useState('open');
     const [submitModalProject, setSubmitModalProject] = useState(null);
     const [bidModalProject, setBidModalProject] = useState(null);
+    const [showWelcome, setShowWelcome] = useState(false);
     const [deliverable, setDeliverable] = useState('');
     const [toast, setToast] = useState(null);
     
@@ -18,6 +20,35 @@ export default function SellerDashboard() {
     const [bidAmount, setBidAmount] = useState('');
     const [bidMessage, setBidMessage] = useState('');
     const [bidDays, setBidDays] = useState('');
+
+    const [startTourManual, setStartTourManual] = useState(false);
+
+    useEffect(() => {
+        const checkFirstVisit = async () => {
+            const hasSeenWelcome = localStorage.getItem('has_seen_welcome_seller');
+            if (!hasSeenWelcome && user) {
+                setShowWelcome(true);
+                localStorage.setItem('has_seen_welcome_seller', 'true');
+                
+                // Trigger Welcome Email
+                try {
+                    await fetch('/api/users/welcome-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user.email, name: user.name })
+                    });
+                } catch (err) {
+                    console.error("Failed to send welcome email", err);
+                }
+            }
+        };
+        checkFirstVisit();
+    }, [user]);
+
+    const handleStartTour = () => {
+        setShowWelcome(false);
+        setStartTourManual(true);
+    };
 
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCategory, setFilterCategory] = useState('');
@@ -266,9 +297,22 @@ export default function SellerDashboard() {
     ];
 
     return (
-        <>
+        <div className="seller-theme">
             <Navbar />
-            <OnboardingTour steps={sellerTourSteps} tourKey="seller_dashboard" />
+            <OnboardingTour steps={sellerTourSteps} tourKey="seller_v1" run={startTourManual} />
+            <WelcomeModal 
+                isOpen={showWelcome} 
+                onClose={() => setShowWelcome(false)} 
+                userName={user?.name} 
+                onStartTour={handleStartTour} 
+            />
+            
+            {toast && (
+                <div className={`toast toast-${toast.type}`}>
+                    {toast.message}
+                </div>
+            )}
+            
             <div className="page">
                 <div className="container">
                     <div className="dashboard-header">
@@ -439,12 +483,8 @@ export default function SellerDashboard() {
                 </div>
             </div>
 
-            {/* Toast */}
-            {toast && (
-                <div className={`toast toast-${toast.type}`}>
-                    {toast.message}
                 </div>
-            )}
-        </>
+            </div>
+        </div>
     );
 }

@@ -1,0 +1,90 @@
+.welcome-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+}
+
+.welcome-modal {
+    background: #1f2937;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 550px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-robot {
+    font-size: 5rem;
+    text-align: center;
+    padding: 40px 0 20px;
+    background: linear-gradient(to bottom, rgba(252, 211, 77, 0.1), transparent);
+}
+
+.welcome-content {
+    padding: 30px;
+    text-align: center;
+}
+
+.welcome-content h1 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.welcome-content p {
+    color: #9ca3af;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.welcome-features {
+    display: grid;
+    gap: 15px;
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.welcome-feature {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.feature-icon {
+    font-size: 1.5rem;
+}
+
+.feature-title {
+    display: block;
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.feature-desc {
+    display: block;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.welcome-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.welcome-actions .btn {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+}
