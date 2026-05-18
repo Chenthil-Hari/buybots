@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Login - BuyBots</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            overflow: hidden;
+            color: #00ff88;
+        }
+
+        #canvas {
+            display: block;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+        }
+
+        .login-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: 400px;
+            max-width: 90vw;
+        }
+
+        .login-box {
+            background: rgba(10, 14, 39, 0.95);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.1);
+            backdrop-filter: blur(10px);
+            animation: glitch-box 0.3s ease-in-out;
+        }
+
+        @keyframes glitch-box {
+            0% {
+                transform: translate(0);
+                opacity: 0.8;
+            }
+            25% {
+                transform: translate(-2px, 2px);
+            }
+            50% {
+                transform: translate(2px, -2px);
+            }
+            75% {
+                transform: translate(-1px, 1px);
+            }
+            100% {
+                transform: translate(0);
+                opacity: 1;
+            }
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8), 0 0 20px rgba(0, 255, 136, 0.4);
+            letter-spacing: 2px;
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(0, 255, 136, 0.8), 0 0 20px rgba(0, 255, 136, 0.4);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(0, 255, 136, 1), 0 0 40px rgba(0, 255, 136, 0.6);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #00ff88;
+            opacity: 0.8;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus {
+            background: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5), inset 0 0 10px rgba(0, 255, 136, 0.2);
+            border-color: #00ffff;
+        }
+
+        input::placeholder {
+            color: rgba(0, 255, 136, 0.4);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 33px;
+            cursor: pointer;
+            color: #00ff88;
+            font-size: 12px;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .password-toggle:hover {
+            opacity: 1;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #00ff88 0%, #00ffff 100%);
+            border: none;
+            border-radius: 5px;
+            color: #0a0e27;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.8), 0 0 40px rgba(0, 255, 255, 0.4);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-button:hover::before {
+            left: 100%;
+        }
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #00ff88;
+            opacity: 0.7;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: #00ff88;
+            opacity: 0.7;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .forgot-password:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #00ff88;
+            opacity: 0.4;
+            font-size: 12px;
+        }
+
+        .social-login {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .social-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            background: rgba(0, 255, 136, 0.05);
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .social-btn:hover {
+            background: rgba(0, 255, 136, 0.15);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #00ff88;
+            opacity: 0.7;
+        }
+
+        .signup-link a {
+            color: #00ffff;
+            text-decoration: none;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .signup-link a:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        /* Animated background elements */
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff88, transparent);
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0%;
+            }
+            100% {
+                top: 100%;
+            }
+        }
+
+        .corner-light {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .corner-light.top-left {
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.15) 0%, transparent 70%);
+        }
+
+        .corner-light.top-right {
+            top: 0;
+            right: 0;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.15) 0%, transparent 70%);
+        }
+
+        .corner-light.bottom-left {
+            bottom: 0;
+            left: 0;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.15) 0%, transparent 70%);
+        }
+
+        .corner-light.bottom-right {
+            bottom: 0;
+            right: 0;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.15) 0%, transparent 70%);
+        }
+
+        .matrix-text {
+            position: fixed;
+            font-size: 10px;
+            color: rgba(0, 255, 136, 0.1);
+            font-family: 'Courier New', monospace;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 5;
+        }
+
+        /* Loading animation */
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            margin: 0 4px;
+            animation: bounce 1.4s infinite;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .login-box {
+                padding: 30px 20px;
+            }
+
+            .title {
+                font-size: 18px;
+            }
+
+            input, .login-button {
+                font-size: 13px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <!-- Animated background elements -->
+    <div class="corner-light top-left"></div>
+    <div class="corner-light top-right"></div>
+    <div class="corner-light bottom-left"></div>
+    <div class="corner-light bottom-right"></div>
+    <div class="scan-line"></div>
+
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="login-box">
+            <div class="title">
+                ▮ CYBER ACCESS ▮
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        placeholder="Enter your identifier"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div style="position: relative;">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            placeholder="Enter your security key"
+                            required
+                        >
+                        <span class="password-toggle" onclick="togglePassword()">SHOW</span>
+                    </div>
+                </div>
+
+                <div class="options">
+                    <label class="remember-me">
+                        <input type="checkbox" id="remember">
+                        Remember me
+                    </label>
+                    <span class="forgot-password" onclick="alert('Password reset feature coming soon!')">
+                        Forgot Password?
+                    </span>
+                </div>
+
+                <button type="submit" class="login-button">
+                    ▶ INITIALIZE LOGIN ▶
+                </button>
+
+                <div class="loading" id="loading">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </form>
+
+            <div class="divider">— OR —</div>
+
+            <div class="social-login">
+                <button class="social-btn" onclick="alert('GitHub login coming soon!')">G</button>
+                <button class="social-btn" onclick="alert('Twitter login coming soon!')">𝕏</button>
+                <button class="social-btn" onclick="alert('Discord login coming soon!')">◉</button>
+            </div>
+
+            <div class="signup-link">
+                Don't have an account? <a onclick="alert('Sign up feature coming soon!')">CREATE ACCESS</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Initialize Three.js Scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true, alpha: false });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x0a0e27);
+        camera.position.z = 5;
+
+        // Create animated particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 500;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount * 3; i += 3) {
+            posArray[i] = (Math.random() - 0.5) * 2000;
+            posArray[i + 1] = (Math.random() - 0.5) * 2000;
+            posArray[i + 2] = (Math.random() - 0.5) * 2000;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 3,
+            color: 0x00ff88,
+            sizeAttenuation: true,
+            transparent: true,
+            opacity: 0.5,
+        });
+
+        const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particles);
+
+        // Create animated wireframe cube
+        const cubeGeometry = new THREE.BoxGeometry(3, 3, 3);
+        const cubeMaterial = new THREE.LineBasicMaterial({
+            color: 0x00ffff,
+            linewidth: 2,
+            transparent: true,
+            opacity: 0.6,
+        });
+        const cubeWireframe = new THREE.LineSegments(
+            new THREE.EdgesGeometry(cubeGeometry),
+            cubeMaterial
+        );
+        scene.add(cubeWireframe);
+
+        // Create rotating torus
+        const torusGeometry = new THREE.TorusGeometry(2, 0.5, 16, 100);
+        const torusMaterial = new THREE.LineBasicMaterial({
+            color: 0x00ff88,
+            transparent: true,
+            opacity: 0.4,
+            linewidth: 2,
+        });
+        const torusWireframe = new THREE.LineSegments(
+            new THREE.EdgesGeometry(torusGeometry),
+            torusMaterial
+        );
+        torusWireframe.rotation.x = Math.PI / 4;
+        torusWireframe.rotation.y = Math.PI / 6;
+        scene.add(torusWireframe);
+
+        // Create glowing icosahedron
+        const icoGeometry = new THREE.IcosahedronGeometry(1.5, 4);
+        const icoMaterial = new THREE.LineBasicMaterial({
+            color: 0xff00ff,
+            transparent: true,
+            opacity: 0.5,
+            linewidth: 2,
+        });
+        const icoWireframe = new THREE.LineSegments(
+            new THREE.EdgesGeometry(icoGeometry),
+            icoMaterial
+        );
+        icoWireframe.position.z = -5;
+        scene.add(icoWireframe);
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate shapes
+            cubeWireframe.rotation.x += 0.001;
+            cubeWireframe.rotation.y += 0.001;
+
+            torusWireframe.rotation.x += 0.002;
+            torusWireframe.rotation.y += 0.003;
+            torusWireframe.rotation.z += 0.001;
+
+            icoWireframe.rotation.x += 0.002;
+            icoWireframe.rotation.y += 0.002;
+
+            // Move particles
+            const positions = particlesGeometry.attributes.position.array;
+            for (let i = 0; i < particlesCount; i++) {
+                positions[i * 3 + 1] -= 0.5;
+                if (positions[i * 3 + 1] < -1000) {
+                    positions[i * 3 + 1] = 1000;
+                }
+            }
+            particlesGeometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Form functionality
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username && password) {
+                document.getElementById('loading').classList.add('active');
+                setTimeout(() => {
+                    alert(`Welcome, ${username}! Login successful! 🔐`);
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('loginForm').reset();
+                }, 2000);
+            }
+        });
+
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggle = document.querySelector('.password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggle.textContent = 'HIDE';
+            } else {
+                passwordInput.type = 'password';
+                toggle.textContent = 'SHOW';
+            }
+        }
+
+        // Generate matrix-style background text
+        function generateMatrixText() {
+            const chars = '01アイウエオカキクケコサシスセソタチツテト';
+            for (let i = 0; i < 15; i++) {
+                const span = document.createElement('div');
+                span.className = 'matrix-text';
+                span.textContent = chars.charAt(Math.floor(Math.random() * chars.length)).repeat(Math.floor(Math.random() * 10 + 5));
+                span.style.left = Math.random() * 100 + '%';
+                span.style.top = Math.random() * 100 + '%';
+                span.style.animation = `pulse-glow ${Math.random() * 3 + 2}s infinite`;
+                document.body.appendChild(span);
+            }
+        }
+
+        generateMatrixText();
+    </script>
+</body>
+</html>
